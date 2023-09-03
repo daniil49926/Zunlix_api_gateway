@@ -34,9 +34,13 @@ def reverse_proxy_route(
     path: str,
     status_code: Optional[int] = status.HTTP_200_OK,
     response_model: Optional[Any] = None,
+    responses: Optional[Any] = None,
 ):
     app_method = method(
-        path, status_code=status_code, response_model=response_model
+        path=path,
+        status_code=status_code,
+        response_model=response_model,
+        responses=responses,
     )
 
     def wrapped(endpoint_coroutine):
