@@ -17,16 +17,36 @@ services = {
 async def request(
     session: aiohttp.ClientSession,
     method: str,
-    url: str
+    url: str,
+    **kwargs
 ):
+    temp_dict: dict = {}
     if method == "GET":
         async with session.get(url) as response:
-            return await response.text()
+            return await response.json()
+    elif method == "POST":
+        for key_f_args in kwargs:
+            for i_fields in kwargs[key_f_args].model_fields_set:
+                temp_dict[i_fields] = getattr(kwargs[key_f_args], i_fields)
+
+        async with session.post(url, json=temp_dict) as response:
+            return await response.json()
 
 
-async def task(method: str, url: str):
+async def task(
+    method: str,
+    url: str,
+    **kwargs
+):
     async with aiohttp.ClientSession() as session:
-        return await asyncio.gather(request(session=session, method=method, url=url))
+        return await asyncio.gather(
+            request(
+                session=session,
+                method=method,
+                url=url,
+                **kwargs
+            )
+        )
 
 
 def reverse_proxy_route(
@@ -52,7 +72,8 @@ def reverse_proxy_route(
             _on_service_endpoint = "/".join(_request.scope["path"].split("/")[2:])
             response_from_service = await task(
                 method=_request.scope["method"].upper(),
-                url=f"{service_address}/{_on_service_endpoint}"
+                url=f"{service_address}/{_on_service_endpoint}",
+                **kwargs
             )
             return JSONResponse(
                 status_code=status_code,
