@@ -8,6 +8,7 @@ with open(file="config/services.json", mode="r", encoding="utf-8") as config_fil
 
 class __Settings(BaseSettings):
     USER_SERVICE: dict = config["user_service"]
+    AUTH_SERVICE: dict = config["auth_service"]
 
 
 settings = __Settings()
