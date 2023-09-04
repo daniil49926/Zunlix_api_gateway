@@ -1,50 +1,70 @@
 from functools import wraps
 
+import json
 import aiohttp
 import asyncio
 from fastapi import status
 from fastapi.requests import Request
 from fastapi.responses import Response, JSONResponse
+from starlette.datastructures import FormData
 from typing import Optional, Any
 
 from api_gateway.settings import settings
 
 services = {
     "user": settings.USER_SERVICE,
+    "auth": settings.AUTH_SERVICE,
 }
 
 
 async def request(
     session: aiohttp.ClientSession,
-    method: str,
-    url: str,
-    **kwargs
+    _request: Request
 ):
-    temp_dict: dict = {}
-    if method == "GET":
-        async with session.get(url) as response:
-            return await response.json()
-    elif method == "POST":
-        for key_f_args in kwargs:
-            for i_fields in kwargs[key_f_args].model_fields_set:
-                temp_dict[i_fields] = getattr(kwargs[key_f_args], i_fields)
+    service = services[_request.scope["path"].split("/")[1]]
+    _full_url = f"{service['host']}:{service['port']}/" + "/".join(_request.scope["path"].split("/")[2:])
 
-        async with session.post(url, json=temp_dict) as response:
+    if _request.method == "GET":
+        async with session.get(_full_url) as response:
             return await response.json()
+    elif _request.method == "POST":
+        _form = None
+        _body = None
+        try:
+            if getattr(_request, "_form"):
+                _form = await _request.form()
+                _form = remake_form_data(_form)
+        except AttributeError:
+            pass
+        try:
+            if getattr(_request, "_body"):
+                _body = await _request.body()
+        except AttributeError:
+            pass
+        if _form:
+            async with session.post(
+                    _full_url,
+                    data=_form,
+                    cookies=_request.cookies,
+            ) as response:
+                return await response.json()
+        elif _body:
+            async with session.post(
+                    _full_url,
+                    json=json.loads(_body.decode("utf-8")),
+                    cookies=_request.cookies,
+            ) as response:
+                return await response.json()
 
 
 async def task(
-    method: str,
-    url: str,
-    **kwargs
+    _request: Request
 ):
     async with aiohttp.ClientSession() as session:
         return await asyncio.gather(
             request(
                 session=session,
-                method=method,
-                url=url,
-                **kwargs
+                _request=_request
             )
         )
 
@@ -67,13 +87,8 @@ def reverse_proxy_route(
         @app_method
         @wraps(endpoint_coroutine)
         async def decorator(_request: Request, _response: Response, **kwargs):
-            service = services[_request.scope["path"].split("/")[1]]
-            service_address = f"{service['host']}:{service['port']}"
-            _on_service_endpoint = "/".join(_request.scope["path"].split("/")[2:])
             response_from_service = await task(
-                method=_request.scope["method"].upper(),
-                url=f"{service_address}/{_on_service_endpoint}",
-                **kwargs
+                _request
             )
             return JSONResponse(
                 status_code=status_code,
@@ -81,3 +96,10 @@ def reverse_proxy_route(
             )
 
     return wrapped
+
+
+def remake_form_data(form: FormData) -> aiohttp.FormData:
+    fd = aiohttp.FormData()
+    for i_key in form:
+        fd.add_field(name=i_key, value=form[i_key])
+    return fd
