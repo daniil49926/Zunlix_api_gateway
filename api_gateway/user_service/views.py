@@ -1,10 +1,10 @@
 from fastapi import APIRouter
-from fastapi.responses import Response
 from fastapi.requests import Request
+from fastapi.responses import Response
 
-from api_gateway.utils import reverse_proxy_route
-from api_gateway.user_service.serializers import UserOut, UserIn
 from api_gateway.response_serializers import Message404
+from api_gateway.user_service.serializers import UserIn, UserOut
+from api_gateway.utils import reverse_proxy_route
 
 user_gateway = APIRouter()
 

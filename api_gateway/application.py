@@ -2,7 +2,6 @@ from fastapi import FastAPI
 
 from api_gateway.routers import gateway
 
-
 _app = None
 
 

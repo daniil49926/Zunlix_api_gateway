@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
-from fastapi.responses import Response
 from fastapi.requests import Request
+from fastapi.responses import Response
 from fastapi.security import OAuth2PasswordRequestForm
 
 from api_gateway.utils import reverse_proxy_route

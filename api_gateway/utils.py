@@ -1,13 +1,13 @@
-from functools import wraps
-
-import json
-import aiohttp
 import asyncio
+import json
+from functools import wraps
+from typing import Any, Optional
+
+import aiohttp
 from fastapi import status
 from fastapi.requests import Request
-from fastapi.responses import Response, JSONResponse
+from fastapi.responses import JSONResponse, Response
 from starlette.datastructures import FormData
-from typing import Optional, Any
 
 from api_gateway.settings import settings
 
