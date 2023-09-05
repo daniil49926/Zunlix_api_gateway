@@ -1,6 +1,6 @@
 import json
-from pydantic_settings import BaseSettings
 
+from pydantic_settings import BaseSettings
 
 with open(file="config/services.json", mode="r", encoding="utf-8") as config_file:
     config = json.load(config_file)
