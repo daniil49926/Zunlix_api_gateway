@@ -58,9 +58,13 @@ async def request(
 
 
 async def task(
-    _request: Request
+    _request: Request,
+    _token: Optional[str]
 ):
-    async with aiohttp.ClientSession() as session:
+    auth_headers = {}
+    if _token:
+        auth_headers["Authorization"] = f"Bearer {_token}"
+    async with aiohttp.ClientSession(headers=auth_headers) as session:
         return await asyncio.gather(
             request(
                 session=session,
@@ -88,7 +92,8 @@ def reverse_proxy_route(
         @wraps(endpoint_coroutine)
         async def decorator(_request: Request, _response: Response, **kwargs):
             response_from_service = await task(
-                _request
+                _request=_request,
+                _token=kwargs.get('_token')
             )
             return JSONResponse(
                 status_code=status_code,

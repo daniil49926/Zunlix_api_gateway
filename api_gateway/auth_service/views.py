@@ -15,7 +15,7 @@ auth_gateway = APIRouter()
 async def read_token(
     _request: Request,
     _response: Response,
-    _token: int
+    _token: str
 ):
     pass
 

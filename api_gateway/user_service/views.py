@@ -43,6 +43,7 @@ async def create_user(
 )
 async def get_me(
     _request: Request,
-    _response: Response
+    _response: Response,
+    _token: str
 ):
     pass
