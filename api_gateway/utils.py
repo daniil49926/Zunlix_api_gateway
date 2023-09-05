@@ -17,12 +17,11 @@ services = {
 }
 
 
-async def request(
-    session: aiohttp.ClientSession,
-    _request: Request
-):
+async def request(session: aiohttp.ClientSession, _request: Request):
     service = services[_request.scope["path"].split("/")[1]]
-    _full_url = f"{service['host']}:{service['port']}/" + "/".join(_request.scope["path"].split("/")[2:])
+    _full_url = f"{service['host']}:{service['port']}/" + "/".join(
+        _request.scope["path"].split("/")[2:]
+    )
 
     if _request.method == "GET":
         async with session.get(_full_url) as response:
@@ -43,34 +42,26 @@ async def request(
             pass
         if _form:
             async with session.post(
-                    _full_url,
-                    data=_form,
-                    cookies=_request.cookies,
+                _full_url,
+                data=_form,
+                cookies=_request.cookies,
             ) as response:
                 return await response.json()
         elif _body:
             async with session.post(
-                    _full_url,
-                    json=json.loads(_body.decode("utf-8")),
-                    cookies=_request.cookies,
+                _full_url,
+                json=json.loads(_body.decode("utf-8")),
+                cookies=_request.cookies,
             ) as response:
                 return await response.json()
 
 
-async def task(
-    _request: Request,
-    _token: Optional[str]
-):
+async def task(_request: Request, _token: Optional[str]):
     auth_headers = {}
     if _token:
         auth_headers["Authorization"] = f"Bearer {_token}"
     async with aiohttp.ClientSession(headers=auth_headers) as session:
-        return await asyncio.gather(
-            request(
-                session=session,
-                _request=_request
-            )
-        )
+        return await asyncio.gather(request(session=session, _request=_request))
 
 
 def reverse_proxy_route(
@@ -92,13 +83,9 @@ def reverse_proxy_route(
         @wraps(endpoint_coroutine)
         async def decorator(_request: Request, _response: Response, **kwargs):
             response_from_service = await task(
-                _request=_request,
-                _token=kwargs.get('_token')
+                _request=_request, _token=kwargs.get("_token")
             )
-            return JSONResponse(
-                status_code=status_code,
-                content=response_from_service
-            )
+            return JSONResponse(status_code=status_code, content=response_from_service)
 
     return wrapped
 

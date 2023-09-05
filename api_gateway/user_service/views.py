@@ -13,37 +13,17 @@ user_gateway = APIRouter()
     method=user_gateway.get,
     path="/users/{_uid}",
     response_model=UserOut,
-    responses={404: {"model": Message404}}
+    responses={404: {"model": Message404}},
 )
-async def get_user(
-    _request: Request,
-    _response: Response,
-    _uid: int
-):
+async def get_user(_request: Request, _response: Response, _uid: int):
     pass
 
 
-@reverse_proxy_route(
-    method=user_gateway.post,
-    path="/users",
-    response_model=UserOut
-)
-async def create_user(
-    _request: Request,
-    _response: Response,
-    _user: UserIn
-):
+@reverse_proxy_route(method=user_gateway.post, path="/users", response_model=UserOut)
+async def create_user(_request: Request, _response: Response, _user: UserIn):
     pass
 
 
-@reverse_proxy_route(
-    method=user_gateway.get,
-    path="/me",
-    response_model=UserOut
-)
-async def get_me(
-    _request: Request,
-    _response: Response,
-    _token: str
-):
+@reverse_proxy_route(method=user_gateway.get, path="/me", response_model=UserOut)
+async def get_me(_request: Request, _response: Response, _token: str):
     pass

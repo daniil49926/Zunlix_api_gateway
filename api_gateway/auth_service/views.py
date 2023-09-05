@@ -12,11 +12,7 @@ auth_gateway = APIRouter()
     method=auth_gateway.get,
     path="/token",
 )
-async def read_token(
-    _request: Request,
-    _response: Response,
-    _token: str
-):
+async def read_token(_request: Request, _response: Response, _token: str):
     pass
 
 
@@ -27,6 +23,6 @@ async def read_token(
 async def login(
     _request: Request,
     _response: Response,
-    _form_data: OAuth2PasswordRequestForm = Depends()
+    _form_data: OAuth2PasswordRequestForm = Depends(),
 ):
     pass
